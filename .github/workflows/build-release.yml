@@ -24,9 +24,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Set UTF-8 encoding
+      run: |
+        $env:PYTHONIOENCODING = "utf-8"
+        $env:PYTHONUTF8 = "1"
+        echo "PYTHONIOENCODING=utf-8" >> $env:GITHUB_ENV
+        echo "PYTHONUTF8=1" >> $env:GITHUB_ENV
+
     - name: Build executable
       run: |
-        python build.py
+        python build-simple.py
+      env:
+        PYTHONIOENCODING: utf-8
+        PYTHONUTF8: 1
 
     - name: Verify build output
       run: |
@@ -58,7 +68,7 @@ jobs:
           release/bilibili-ai-partition.exe
           release/README.md
           release/requirements.txt
-          release/使用说明.txt
+          release/Usage-Instructions.txt
         body: |
           ## 🎉 bilibili-ai-partition ${{ github.ref_name }}
 

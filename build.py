@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 bilibili-ai-partition 打包脚本
 """
@@ -8,16 +9,22 @@ import shutil
 import subprocess
 from pathlib import Path
 
+# 设置UTF-8编码输出
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 def run_command(cmd, cwd=None):
     """运行命令并显示输出"""
-    print(f"🔧 执行: {cmd}")
+    print(f"[RUN] {cmd}")
     try:
         result = subprocess.run(
-            cmd, 
-            shell=True, 
-            cwd=cwd, 
-            check=True, 
-            capture_output=True, 
+            cmd,
+            shell=True,
+            cwd=cwd,
+            check=True,
+            capture_output=True,
             text=True,
             encoding='utf-8'
         )
@@ -25,53 +32,53 @@ def run_command(cmd, cwd=None):
             print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ 命令执行失败: {e}")
+        print(f"[ERROR] Command failed: {e}")
         if e.stdout:
-            print("标准输出:", e.stdout)
+            print("STDOUT:", e.stdout)
         if e.stderr:
-            print("错误输出:", e.stderr)
+            print("STDERR:", e.stderr)
         return False
 
 def check_requirements():
     """检查构建要求"""
-    print("📋 检查构建要求...")
-    
+    print("[CHECK] Checking build requirements...")
+
     # 检查Python版本
     if sys.version_info < (3, 8):
-        print("❌ 需要Python 3.8或更高版本")
+        print("[ERROR] Python 3.8+ required")
         return False
-    
+
     # 检查PyInstaller
     try:
         import PyInstaller
-        print(f"✅ PyInstaller版本: {PyInstaller.__version__}")
+        print(f"[OK] PyInstaller version: {PyInstaller.__version__}")
     except ImportError:
-        print("❌ 未安装PyInstaller，正在安装...")
+        print("[INFO] Installing PyInstaller...")
         if not run_command("pip install pyinstaller"):
             return False
-    
+
     # 检查UPX（可选）
     try:
         result = subprocess.run("upx --version", shell=True, capture_output=True)
         if result.returncode == 0:
-            print("✅ UPX可用，将启用压缩")
+            print("[OK] UPX available, compression enabled")
         else:
-            print("⚠️  UPX不可用，跳过压缩")
+            print("[WARN] UPX not available, skipping compression")
     except:
-        print("⚠️  UPX不可用，跳过压缩")
-    
+        print("[WARN] UPX not available, skipping compression")
+
     return True
 
 def clean_build():
     """清理构建目录"""
-    print("🧹 清理构建目录...")
-    
+    print("[CLEAN] Cleaning build directories...")
+
     dirs_to_clean = ['build', 'dist', '__pycache__']
     for dir_name in dirs_to_clean:
         if os.path.exists(dir_name):
             shutil.rmtree(dir_name)
-            print(f"  删除: {dir_name}")
-    
+            print(f"  Removed: {dir_name}")
+
     # 清理.pyc文件
     for root, dirs, files in os.walk('.'):
         for file in files:
@@ -80,23 +87,23 @@ def clean_build():
 
 def install_dependencies():
     """安装依赖"""
-    print("📦 安装依赖...")
+    print("[INSTALL] Installing dependencies...")
 
     # 确保pip是最新版本
     if not run_command("python -m pip install --upgrade pip"):
-        print("⚠️  pip升级失败，继续使用当前版本")
+        print("[WARN] pip upgrade failed, continuing with current version")
 
     # 安装项目依赖
     if not run_command("pip install -r requirements.txt"):
-        print("❌ 依赖安装失败")
+        print("[ERROR] Dependencies installation failed")
         return False
 
     # 确保PyInstaller已安装
     try:
         import PyInstaller
-        print(f"✅ PyInstaller已安装: {PyInstaller.__version__}")
+        print(f"[OK] PyInstaller installed: {PyInstaller.__version__}")
     except ImportError:
-        print("📦 安装PyInstaller...")
+        print("[INSTALL] Installing PyInstaller...")
         if not run_command("pip install pyinstaller>=5.13.0"):
             return False
 
@@ -104,7 +111,7 @@ def install_dependencies():
 
 def build_executable():
     """构建可执行文件"""
-    print("🔨 开始构建可执行文件...")
+    print("[BUILD] Starting executable build...")
 
     # 首先尝试简单的spec文件
     spec_files = [
@@ -114,14 +121,14 @@ def build_executable():
 
     for spec_file in spec_files:
         if os.path.exists(spec_file):
-            print(f"📄 使用spec文件: {spec_file}")
+            print(f"[BUILD] Using spec file: {spec_file}")
             if run_command(f"pyinstaller {spec_file}"):
                 return True
             else:
-                print(f"⚠️  使用 {spec_file} 构建失败，尝试下一个...")
+                print(f"[WARN] Build failed with {spec_file}, trying next...")
 
     # 如果spec文件都失败，尝试直接命令行构建
-    print("📄 尝试直接命令行构建...")
+    print("[BUILD] Trying direct command line build...")
     cmd = [
         "pyinstaller",
         "--onefile",
@@ -134,10 +141,10 @@ def build_executable():
         "--hidden-import", "src.config_manager",
         "--hidden-import", "src.grouping_service",
         "--hidden-import", "src.bilibili_client",
+        "--hidden-import", "src.bilibili_auth",
         "--hidden-import", "src.ai_analyzer",
         "--hidden-import", "src.interactive_config",
         "--hidden-import", "src.models",
-        "--hidden-import", "src.utils",
         "--exclude-module", "tkinter",
         "--exclude-module", "matplotlib",
         "--exclude-module", "numpy",
@@ -148,13 +155,13 @@ def build_executable():
     if run_command(" ".join(cmd)):
         return True
 
-    print("❌ 所有构建方法都失败了")
+    print("[ERROR] All build methods failed")
     return False
 
 def create_release_package():
     """创建发布包"""
-    print("📦 创建发布包...")
-    
+    print("[PACKAGE] Creating release package...")
+
     # 创建发布目录
     release_dir = Path("release")
     if release_dir.exists():
@@ -165,22 +172,22 @@ def create_release_package():
     exe_path = Path("dist/bilibili-ai-partition.exe")
     if exe_path.exists():
         shutil.copy2(exe_path, release_dir / "bilibili-ai-partition.exe")
-        print(f"✅ 复制可执行文件: {exe_path}")
+        print(f"[OK] Copied executable: {exe_path}")
     else:
-        print("❌ 找不到可执行文件")
+        print("[ERROR] Executable not found")
         return False
-    
+
     # 复制必要文件
     files_to_copy = [
         ".env.example",
         "README.md",
         "requirements.txt"
     ]
-    
+
     for file_name in files_to_copy:
         if os.path.exists(file_name):
             shutil.copy2(file_name, release_dir / file_name)
-            print(f"  复制: {file_name}")
+            print(f"  Copied: {file_name}")
     
     # 创建使用说明
     usage_text = """# bilibili-ai-partition 使用说明
@@ -242,38 +249,38 @@ bilibili-ai-partition.exe status
     with open(release_dir / "使用说明.txt", "w", encoding="utf-8") as f:
         f.write(usage_text)
     
-    print(f"✅ 发布包创建完成: {release_dir}")
+    print(f"[OK] Release package created: {release_dir}")
     return True
 
 def main():
     """主函数"""
-    print("🚀 bilibili-ai-partition 构建脚本")
+    print("bilibili-ai-partition Build Script")
     print("=" * 50)
-    
+
     # 检查构建要求
     if not check_requirements():
-        print("❌ 构建要求检查失败")
+        print("[ERROR] Build requirements check failed")
         return 1
-    
+
     # 清理构建目录
     clean_build()
-    
+
     # 安装依赖
     if not install_dependencies():
         return 1
-    
+
     # 构建可执行文件
     if not build_executable():
         return 1
-    
+
     # 创建发布包
     if not create_release_package():
         return 1
-    
-    print("\n🎉 构建完成！")
-    print("📁 发布文件位于 release/ 目录")
-    print("💡 可以将整个 release/ 目录分发给用户")
-    
+
+    print("\n[SUCCESS] Build completed!")
+    print("[INFO] Release files are in release/ directory")
+    print("[INFO] You can distribute the entire release/ directory to users")
+
     return 0
 
 if __name__ == "__main__":
