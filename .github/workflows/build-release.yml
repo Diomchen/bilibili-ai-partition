@@ -6,6 +6,11 @@ on:
       - 'v*'  # 当推送版本标签时触发
   workflow_dispatch:  # 允许手动触发
 
+permissions:
+  contents: write  # 允许创建release和上传文件
+  actions: read    # 允许读取actions
+  checks: write    # 允许写入检查状态
+
 jobs:
   build:
     runs-on: windows-latest  # 使用 Windows 构建 .exe
@@ -58,12 +63,14 @@ jobs:
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       id: create_release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
+      continue-on-error: true
       with:
         tag_name: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
+        generate_release_notes: true
         files: |
           release/bilibili-ai-partition.exe
           release/README.md
@@ -73,20 +80,43 @@ jobs:
         body: |
           ## 🎉 bilibili-ai-partition ${{ github.ref_name }}
 
-          ### 📦 下载说明
-          - 下载 `bilibili-ai-partition.exe` 即可使用
-          - 首次使用请运行配置向导
-          - 详细使用说明请查看 README.md
+          ### 📦 Quick Start
+          1. Download `bilibili-ai-partition.exe`
+          2. Double-click to run
+          3. Follow the configuration wizard
+          4. Start intelligent grouping
 
-          ### ✨ 功能特性
-          - 🤖 AI智能分析UP主类型
-          - 📊 自动创建分组并批量分配
-          - 🔍 支持试运行模式
-          - ⚙️ 可配置AI分析批次大小
+          ### ✨ Features
+          - 🤖 AI-powered UP analysis
+          - 📊 Automatic group creation and assignment
+          - 🔍 Dry-run mode for testing
+          - ⚙️ Configurable AI batch size
 
-          ### 🔒 安全提醒
-          - 请妥善保管你的Cookie和API密钥
-          - 不要在公共场所使用
-          - 定期更换密钥以确保安全
+          ### 🔒 Security Notes
+          - Keep your Cookie and API keys secure
+          - Don't use in public environments
+          - Regularly rotate your credentials
+
+          ### 📋 Files Included
+          - `bilibili-ai-partition.exe` - Main executable (23MB)
+          - `README.md` - Detailed documentation
+          - `requirements.txt` - Dependencies list
+          - `.env.example` - Configuration template
+          - `Usage-Instructions.txt` - Quick usage guide
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Fallback Release Creation
+      if: startsWith(github.ref, 'refs/tags/') && failure()
+      run: |
+        echo "Primary release creation failed, trying alternative method..."
+        gh release create ${{ github.ref_name }} \
+          release/bilibili-ai-partition.exe \
+          release/README.md \
+          release/requirements.txt \
+          release/.env.example \
+          release/Usage-Instructions.txt \
+          --title "Release ${{ github.ref_name }}" \
+          --notes "Automated release for ${{ github.ref_name }}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
