@@ -81,11 +81,25 @@ def clean_build():
 def install_dependencies():
     """安装依赖"""
     print("📦 安装依赖...")
-    
+
+    # 确保pip是最新版本
+    if not run_command("python -m pip install --upgrade pip"):
+        print("⚠️  pip升级失败，继续使用当前版本")
+
+    # 安装项目依赖
     if not run_command("pip install -r requirements.txt"):
         print("❌ 依赖安装失败")
         return False
-    
+
+    # 确保PyInstaller已安装
+    try:
+        import PyInstaller
+        print(f"✅ PyInstaller已安装: {PyInstaller.__version__}")
+    except ImportError:
+        print("📦 安装PyInstaller...")
+        if not run_command("pip install pyinstaller>=5.13.0"):
+            return False
+
     return True
 
 def build_executable():
