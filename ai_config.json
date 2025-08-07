@@ -1,5 +1,5 @@
 {
-  "api_key": "sk-Fc4aqee4MLefrJ2FOm3X17c3Z23uG9igSU0kHD7ecU34XMDZ",
-  "base_url": "https://api.nyxar.org/v1",
+  "api_key": "sk-[test]igSU0kHD7ecU34XMDZ",
+  "base_url": "https://api.test.com/v1",
   "model": "o4-mini"
 }
