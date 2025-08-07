@@ -68,6 +68,7 @@ jobs:
           release/bilibili-ai-partition.exe
           release/README.md
           release/requirements.txt
+          release/.env.example
           release/Usage-Instructions.txt
         body: |
           ## 🎉 bilibili-ai-partition ${{ github.ref_name }}
