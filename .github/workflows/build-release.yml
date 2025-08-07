@@ -33,7 +33,7 @@ jobs:
 
     - name: Build executable
       run: |
-        python build-simple.py
+        python build.py
       env:
         PYTHONIOENCODING: utf-8
         PYTHONUTF8: 1

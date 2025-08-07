@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bilibili-ai-partition 打包脚本
+bilibili-ai-partition build script
+Compatible with both local and GitHub Actions environments
 """
 import os
 import sys
 import shutil
 import subprocess
 from pathlib import Path
-
-# 设置UTF-8编码输出
-if sys.platform == "win32":
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def run_command(cmd, cwd=None):
     """运行命令并显示输出"""
@@ -246,7 +241,7 @@ bilibili-ai-partition.exe status
 4. 查看日志文件获取详细错误信息
 """
     
-    with open(release_dir / "使用说明.txt", "w", encoding="utf-8") as f:
+    with open(release_dir / "Usage-Instructions.txt", "w", encoding="utf-8") as f:
         f.write(usage_text)
     
     print(f"[OK] Release package created: {release_dir}")
@@ -254,7 +249,10 @@ bilibili-ai-partition.exe status
 
 def main():
     """主函数"""
-    print("bilibili-ai-partition Build Script")
+    try:
+        print("bilibili-ai-partition Build Script")
+    except UnicodeEncodeError:
+        print("bilibili-ai-partition Build Script")
     print("=" * 50)
 
     # 检查构建要求
@@ -277,9 +275,14 @@ def main():
     if not create_release_package():
         return 1
 
-    print("\n[SUCCESS] Build completed!")
-    print("[INFO] Release files are in release/ directory")
-    print("[INFO] You can distribute the entire release/ directory to users")
+    try:
+        print("\n[SUCCESS] Build completed!")
+        print("[INFO] Release files are in release/ directory")
+        print("[INFO] You can distribute the entire release/ directory to users")
+    except UnicodeEncodeError:
+        print("\n[SUCCESS] Build completed!")
+        print("[INFO] Release files are in release/ directory")
+        print("[INFO] You can distribute the entire release/ directory to users")
 
     return 0
 
