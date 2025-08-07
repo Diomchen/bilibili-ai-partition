@@ -1,0 +1,16 @@
+# 核心依赖
+requests>=2.31.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+click>=8.1.0
+rich>=13.0.0
+pydantic>=2.0.0
+httpx>=0.24.0
+asyncio-throttle>=1.0.0
+qrcode>=7.4.0
+
+# 打包依赖（开发时使用）
+pyinstaller>=5.13.0
+
+# 可选依赖
+pillow>=9.0.0  # 用于二维码图片生成
